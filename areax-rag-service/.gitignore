@@ -1,0 +1,35 @@
+# Python services (see also the repository root .gitignore for secrets and editor files)
+
+# Bytecode and caches
+__pycache__/
+*.py[cod]
+*$py.class
+.mypy_cache/
+.ruff_cache/
+.import_linter_cache/
+.pytest_cache/
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Packaging and build output
+build/
+dist/
+*.egg-info/
+.eggs/
+wheels/
+
+# Coverage output (no tests in this phase; kept for later)
+.coverage
+.coverage.*
+htmlcov/
+
+# Environment files: never commit real values, keep only the template
+.env
+.env.*
+!.env.example
+
+# Local scratch space for temporary files created while processing documents
+tmp/
