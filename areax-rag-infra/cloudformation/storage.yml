@@ -1,0 +1,121 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: >-
+  areax-rag storage on Floci - documents bucket (S3), vector bucket and chunk index (S3 Vectors).
+
+# Notes
+# - Vector index settings (dimension, distance metric, metadata configuration) cannot be
+#   changed after creation. Changing them means creating a new index and re-indexing.
+# - Dimension 1536 matches the embedding model text-embedding-3-small. If the model in the
+#   environment changes, change this value together with it.
+# - Data resources use DeletionPolicy: Retain so deleting the stack never erases user data.
+# - Floci skips unsupported resource types silently (WARN only). Run Floci with
+#   FLOCI_SERVICES_CLOUDFORMATION_ALLOW_STUB_UNSUPPORTED_RESOURCE_TYPES=false.
+
+Parameters:
+  DocumentsBucketName:
+    Type: String
+    Default: areax-rag-documents
+    AllowedPattern: "^[a-z0-9][a-z0-9.-]{1,61}[a-z0-9]$"
+    Description: S3 bucket that stores uploaded documents.
+
+  VectorBucketName:
+    Type: String
+    Default: areax-rag-vectors
+    AllowedPattern: "^[a-z0-9][a-z0-9-]{1,61}[a-z0-9]$"
+    Description: S3 Vectors bucket that holds the chunk index.
+
+  VectorIndexName:
+    Type: String
+    Default: areax-rag-chunks
+    AllowedPattern: "^[a-z0-9][a-z0-9.-]{1,61}[a-z0-9]$"
+    Description: Shared vector index. Vectors are filtered by project_id metadata.
+
+  VectorDimension:
+    Type: Number
+    Default: 1536
+    MinValue: 1
+    MaxValue: 4096
+    Description: Embedding dimension (1536 for text-embedding-3-small).
+
+  DistanceMetric:
+    Type: String
+    Default: cosine
+    AllowedValues:
+      - cosine
+      - euclidean
+    Description: Distance metric used by the index.
+
+  NonFilterableMetadataKeys:
+    Type: CommaDelimitedList
+    Default: text
+    Description: >-
+      Metadata keys that can be stored but not filtered on. "text" holds the chunk text so a
+      query can return passages without a second lookup (proposed design, see docs).
+
+  CorsAllowedOrigins:
+    Type: CommaDelimitedList
+    Default: "http://localhost:3000"
+    Description: Browser origins allowed to upload to and read from the documents bucket (presigned URLs).
+
+Resources:
+  DocumentsBucket:
+    Type: AWS::S3::Bucket
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      BucketName: !Ref DocumentsBucketName
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      CorsConfiguration:
+        CorsRules:
+          - AllowedOrigins: !Ref CorsAllowedOrigins
+            AllowedMethods:
+              - GET
+              - PUT
+              - HEAD
+            AllowedHeaders:
+              - "*"
+            ExposedHeaders:
+              - ETag
+            MaxAge: 3000
+
+  VectorBucket:
+    Type: AWS::S3Vectors::VectorBucket
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      VectorBucketName: !Ref VectorBucketName
+
+  ChunkIndex:
+    Type: AWS::S3Vectors::Index
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    DependsOn: VectorBucket
+    Properties:
+      VectorBucketName: !Ref VectorBucketName
+      IndexName: !Ref VectorIndexName
+      DataType: float32
+      Dimension: !Ref VectorDimension
+      DistanceMetric: !Ref DistanceMetric
+      MetadataConfiguration:
+        NonFilterableMetadataKeys: !Ref NonFilterableMetadataKeys
+
+Outputs:
+  DocumentsBucketName:
+    Description: Name of the documents bucket.
+    Value: !Ref DocumentsBucketName
+
+  VectorBucketName:
+    Description: Name of the vector bucket.
+    Value: !Ref VectorBucketName
+
+  VectorIndexName:
+    Description: Name of the shared chunk index.
+    Value: !Ref VectorIndexName
+
+  VectorDimension:
+    Description: Dimension the index was created with.
+    Value: !Ref VectorDimension

@@ -1,0 +1,37 @@
+# Floci (virtual AWS: S3, S3 Vectors, CloudFormation) for areax-rag (runs on the VPS).
+# Start with: ../scripts/infra.sh up floci
+#
+# - Published on 127.0.0.1 only; reach it through the SSH tunnel at http://localhost:4566.
+# - FLOCI_STORAGE_MODE must be set: the default image uses "memory" and loses everything on restart.
+# - Unsupported CloudFormation resource types fail loudly instead of being skipped silently.
+#
+# If you already run Floci from another compose file, stop it first (the old container is named
+# "floci"). To keep its data, set FLOCI_VOLUME in compose/.env to the old volume name
+# (see `docker volume ls`).
+
+name: areax-rag-floci
+
+services:
+  floci:
+    image: floci/floci:${FLOCI_VERSION:-2.4.0}
+    container_name: areax-floci
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:4566:4566"
+    environment:
+      FLOCI_STORAGE_MODE: ${FLOCI_STORAGE_MODE:-hybrid}
+      FLOCI_STORAGE_PERSISTENT_PATH: /app/data
+      FLOCI_SERVICES_UI_BIND_ADDRESS: 127.0.0.1
+      FLOCI_SERVICES_CLOUDFORMATION_ALLOW_STUB_UNSUPPORTED_RESOURCE_TYPES: "false"
+    volumes:
+      - floci_data:/app/data
+      # Very high privilege on the host. Enable ONLY if Floci fails to start or needs to run
+      # containers for the services you use (S3, S3 Vectors and CloudFormation should not).
+      # - /var/run/docker.sock:/var/run/docker.sock
+    mem_limit: ${FLOCI_MEM_LIMIT:-1g}
+    # No healthcheck: the image's tools are not documented. Check with:
+    #   aws --endpoint-url http://localhost:4566 s3api list-buckets
+
+volumes:
+  floci_data:
+    name: ${FLOCI_VOLUME:-areax-rag-floci-data}

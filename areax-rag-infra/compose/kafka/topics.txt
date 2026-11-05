@@ -1,0 +1,14 @@
+# Kafka topics created by scripts/init-kafka-topics.sh
+# PROVISIONAL: the Kafka design (names, partitions, retention) is still open.
+# See areax-rag-service/docs/message-contract.md
+#
+# Format (space-separated):  name  partitions  replication-factor  [config=value,config=value]
+# Lines starting with # and blank lines are ignored. Creating an existing topic is a no-op.
+#
+# Chat topics use 3 partitions; the partition key is the thread id so tokens stay in order.
+# One broker, so replication factor is always 1.
+
+areax.document.events  1  1
+areax.chat.requests    3  1
+areax.chat.tokens      3  1  retention.ms=3600000
+areax.dlq              1  1

@@ -1,0 +1,39 @@
+# Postgres for areax-rag (runs on the VPS).
+# Start with: ../scripts/infra.sh up postgres   (needs compose/.env, see .env.example)
+#
+# - Published on 127.0.0.1 only; reach it through the SSH tunnel.
+# - The files in ./postgres/initdb run ONCE, when the data volume is empty.
+# - The application owns the schema (Prisma migrations); this file only prepares the role and database.
+
+name: areax-rag-postgres
+
+services:
+  postgres:
+    image: postgres:16
+    container_name: areax-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_ADMIN_USER:?set POSTGRES_ADMIN_USER in compose/.env}
+      POSTGRES_PASSWORD: ${POSTGRES_ADMIN_PASSWORD:?set POSTGRES_ADMIN_PASSWORD in compose/.env}
+      POSTGRES_DB: postgres
+      # Read by ./postgres/initdb/01-create-app-role-and-db.sh
+      APP_DB_USER: ${APP_DB_USER:?set APP_DB_USER in compose/.env}
+      APP_DB_PASSWORD: ${APP_DB_PASSWORD:?set APP_DB_PASSWORD in compose/.env}
+      APP_DB_NAME: ${APP_DB_NAME:?set APP_DB_NAME in compose/.env}
+    # Small settings for a 4GB VPS shared with Kafka and Floci.
+    command: ["postgres", "-c", "shared_buffers=128MB", "-c", "max_connections=50"]
+    ports:
+      - "127.0.0.1:5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./postgres/initdb:/docker-entrypoint-initdb.d:ro
+    mem_limit: ${POSTGRES_MEM_LIMIT:-512m}
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U \"$$POSTGRES_USER\" -d postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  postgres_data:
+    name: areax-rag-postgres-data
