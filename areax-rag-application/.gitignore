@@ -1,0 +1,36 @@
+# Next.js application (see also the repository root .gitignore for secrets and editor files)
+
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# Next.js build output
+.next/
+out/
+build/
+dist/
+next-env.d.ts
+
+# TypeScript and tooling caches
+*.tsbuildinfo
+.eslintcache
+.stylelintcache
+.cache/
+
+# Prisma generated client (if the generator output is inside the project)
+src/generated/
+
+# Package manager debug logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Environment files: never commit real values, keep only the template
+.env
+.env.*
+!.env.example
+
+# Test and coverage output (no tests in this phase; kept for later)
+coverage/
