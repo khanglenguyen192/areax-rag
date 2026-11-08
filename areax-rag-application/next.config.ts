@@ -3,6 +3,8 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
+  // Produces a self-contained server in .next/standalone so the Docker image does not need node_modules.
+  output: "standalone",
   // We keep agent guidance in CODING_STANDARD.md; do not generate AGENTS.md on `next dev`.
   agentRules: false,
   experimental: {

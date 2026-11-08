@@ -1,0 +1,13 @@
+# Runs on the VPS. The image comes from Docker Hub; deploy.sh sets APP_IMAGE.
+services:
+  application:
+    image: ${APP_IMAGE:?APP_IMAGE is required}
+    restart: unless-stopped
+    # Host networking, because Postgres, Kafka and Floci publish their ports on 127.0.0.1 only
+    # (areax-rag-infra/docs/ports-and-tunnels.md), which a bridge-network container cannot reach.
+    network_mode: host
+    env_file:
+      - ./application.env
+    environment:
+      PORT: "3000"
+      HOSTNAME: 0.0.0.0
