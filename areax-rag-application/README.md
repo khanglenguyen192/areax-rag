@@ -81,4 +81,5 @@ In this phase the application runs on your own machine and reaches Postgres, Kaf
 - [`docs/error-codes.md`](docs/error-codes.md)
 - [`docs/db-ownership.md`](docs/db-ownership.md)
 - [`docs/environment-variables.md`](docs/environment-variables.md)
+- [`docs/deployment.md`](docs/deployment.md)
 - Requirements: [`../areax-rag-requirement/en/`](../areax-rag-requirement/en/00-overview.md)

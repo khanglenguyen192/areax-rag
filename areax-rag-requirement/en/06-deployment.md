@@ -30,13 +30,13 @@ Every port on the VPS binds only to `127.0.0.1` and is **not exposed to the inte
 - The SSH config should set `ServerAliveInterval` and `ServerAliveCountMax`; consider `autossh` for automatic reconnection. (Proposed)
 - Floci runs with `FLOCI_STORAGE_MODE=hybrid`, with data in its own volume. Re-check whether mounting `/var/run/docker.sock` is needed.
 
-## 4. CI/CD (postponed; direction for a later phase)
+## 4. CI/CD (application workflow written; others postponed)
 
-There is **no** CI/CD in this phase. When it is built later (general direction decided, details proposed):
+The **application** workflow is written (`.github/workflows/application-deploy.yml`, documented in `areax-rag-application/docs/deployment.md`) but has **not run yet**. The service, mcp and infra have none. Direction (general direction decided, details proposed):
 
 - Work happens on `develop`; merging into `deployment/prod` deploys. **No quality gate.** (Decided)
 - **One workflow per component** (application, service, mcp, infra) with `on.push.paths`, plus `workflow_dispatch` for manual runs. (Decided: run separately per folder)
-- Registry is **Docker Hub**, using **one repo** with tags per component (for example `app-<sha>`, `service-<sha>`). The free plan's private repo policy is unverified. (Registry decided; repo usage proposed)
+- Registry is **Docker Hub**, using **one repo** with tags per component (the application uses `application-<sha>`, the services will use `service-<sha>`). The free plan's private repo policy is unverified. (Registry decided; repo usage proposed)
 - **Build on the GitHub runner**, not on the VPS. Tag by git SHA. (Proposed)
 - Deploy over **SSH**: `docker compose pull && docker compose up -d`. No self-hosted runner on the VPS. (Proposed)
 - On the VPS, run `docker login` once with a read-only token; the runner uses a separate write token stored in GitHub Secrets. The repo is public, so the VPS can clone over HTTPS without credentials. (Proposed)

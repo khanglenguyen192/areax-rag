@@ -34,3 +34,7 @@ pnpm-debug.log*
 
 # Test and coverage output (no tests in this phase; kept for later)
 coverage/
+
+# Deployment files created on the VPS by hand or by deploy.sh (never committed)
+deploy/application.env
+deploy/.current-image

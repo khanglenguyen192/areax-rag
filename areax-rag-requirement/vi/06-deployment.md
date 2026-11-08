@@ -30,13 +30,13 @@ Mọi cổng trên VPS chỉ bind `127.0.0.1`, **không mở ra internet**. Truy
 - SSH config nên có `ServerAliveInterval`, `ServerAliveCountMax`; cân nhắc `autossh` để tự nối lại. (Đề xuất)
 - Floci chạy `FLOCI_STORAGE_MODE=hybrid`, dữ liệu ở volume riêng. Kiểm tra lại việc mount `/var/run/docker.sock`.
 
-## 4. CI/CD (hoãn; hướng cho phase sau)
+## 4. CI/CD (đã viết workflow cho application; phần còn lại hoãn)
 
-Ở phase này **không** có CI/CD. Khi làm sau này (Đã chốt hướng chung, chi tiết là đề xuất):
+Workflow của **application** đã viết (`.github/workflows/application-deploy.yml`, mô tả trong `areax-rag-application/docs/deployment.md`) nhưng **chưa chạy lần nào**. Service, mcp và infra chưa có. Hướng (Đã chốt hướng chung, chi tiết là đề xuất):
 
 - Branch làm việc `develop`; merge vào `deployment/prod` thì deploy. **Không có quality gate.** (Đã chốt)
 - **Mỗi thành phần một workflow** (application, service, mcp, infra) với `on.push.paths`, có `workflow_dispatch` để chạy tay. (Đã chốt: chạy riêng theo thư mục)
-- Registry **Docker Hub**, **một repo** phân biệt bằng tag theo thành phần (ví dụ `app-<sha>`, `service-<sha>`). Chính sách private repo của gói free chưa kiểm chứng. (Đã chốt registry; cách dùng repo là đề xuất)
+- Registry **Docker Hub**, **một repo** phân biệt bằng tag theo thành phần (application dùng `application-<sha>`, service sẽ dùng `service-<sha>`). Chính sách private repo của gói free chưa kiểm chứng. (Đã chốt registry; cách dùng repo là đề xuất)
 - **Build trên runner của GitHub**, không build trên VPS. Gắn tag theo git SHA. (Đề xuất)
 - Deploy qua **SSH**: `docker compose pull && docker compose up -d`. Không đặt self-hosted runner trên VPS. (Đề xuất)
 - Trên VPS, `docker login` một lần bằng token chỉ đọc; runner dùng token ghi riêng lưu trong GitHub Secrets. Repo công khai nên VPS clone qua HTTPS không cần credential. (Đề xuất)
