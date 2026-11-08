@@ -1,0 +1,15 @@
+@use "tokens" as t;
+
+.root {
+  display: flex;
+  flex-direction: column;
+  gap: t.$space-4;
+}
+
+.tabs {
+  border-bottom: 1px solid var(--color-border);
+}
+
+.content {
+  padding-top: t.$space-2;
+}

@@ -1,0 +1,12 @@
+@use "tokens" as t;
+
+.root {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: t.$space-2;
+}
+
+.field {
+  flex: 1 1 14rem;
+}

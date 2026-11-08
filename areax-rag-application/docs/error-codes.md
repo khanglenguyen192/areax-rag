@@ -29,8 +29,19 @@ Every API response carries `status` (HTTP status) and `code`. The UI translates 
 | `PROJECT_SIZE_LIMIT_EXCEEDED` | 422 | The upload would exceed the project's total size limit |
 | `FILE_TOO_LARGE` | 413 | A single file exceeds the per-file limit |
 | `UNSUPPORTED_FILE_TYPE` | 422 | File type is not supported |
+| `INVALID_YOUTUBE_URL` | 422 | The link is not a YouTube video URL |
+| `NOT_FOUND` | 404 | No such route (generic) |
 | `RATE_LIMITED` | 429 | Too many requests (for example login attempts) |
 | `INTERNAL_ERROR` | 500 | Unexpected error; details are only in the server log |
+
+## Client-only codes
+
+The UI raises these itself; the server never sends them. They have locale keys like any other code.
+
+| Code | Meaning |
+|---|---|
+| `NETWORK_ERROR` | The request never reached the server |
+| `UNKNOWN` | An error without a known code |
 
 ## Document failure reasons
 

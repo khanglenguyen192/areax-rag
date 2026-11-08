@@ -1,0 +1,23 @@
+// Design tokens. The same values are exposed as CSS custom properties in :root (see globals.scss)
+// so SCSS and the MUI theme read one source. Keep src/components/providers/ThemeProvider/theme.ts in sync.
+
+$breakpoints: (
+  sm: 576px,
+  md: 768px,
+  lg: 992px,
+  xl: 1200px,
+);
+
+// z-index scale: define every layer here so stacking order stays in one place.
+$z-header: 100;
+$z-overlay: 1000;
+
+$space-1: 0.25rem;
+$space-2: 0.5rem;
+$space-3: 0.75rem;
+$space-4: 1rem;
+$space-5: 1.5rem;
+$space-6: 2rem;
+$space-7: 3rem;
+
+$content-max-width: 1120px;

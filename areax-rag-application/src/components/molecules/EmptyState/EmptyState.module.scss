@@ -1,0 +1,23 @@
+@use "tokens" as t;
+
+.root {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: t.$space-3;
+  padding: t.$space-6 t.$space-4;
+  border: 1px dashed var(--color-border);
+  border-radius: var(--radius);
+  text-align: center;
+}
+
+.title {
+  margin: 0;
+  font-size: 1.0625rem;
+}
+
+.description {
+  margin: 0;
+  max-width: 28rem;
+  color: var(--color-text-muted);
+}

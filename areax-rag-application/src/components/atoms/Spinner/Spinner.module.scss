@@ -1,0 +1,7 @@
+@use "tokens" as t;
+
+.centered {
+  display: flex;
+  justify-content: center;
+  padding: t.$space-6;
+}

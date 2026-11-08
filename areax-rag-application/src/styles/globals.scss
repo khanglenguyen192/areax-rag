@@ -1,0 +1,41 @@
+@use "vendor-bootstrap";
+
+:root {
+  --color-primary: #3b5bdb;
+  --color-primary-soft: #edf2ff;
+  --color-danger: #c92a2a;
+  --color-danger-soft: #fff5f5;
+  --color-success: #2b8a3e;
+  --color-success-soft: #ebfbee;
+  --color-warning: #e67700;
+  --color-warning-soft: #fff4e6;
+  --color-info: #1971c2;
+  --color-info-soft: #e7f5ff;
+  --color-text: #1c2333;
+  --color-text-muted: #5b6478;
+  --color-border: #dfe3ec;
+  --color-surface: #ffffff;
+  --color-background: #f6f7fb;
+  --radius: 10px;
+  --font-sans: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  min-height: 100%;
+  background: var(--color-background);
+  color: var(--color-text);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+a {
+  color: var(--color-primary);
+}

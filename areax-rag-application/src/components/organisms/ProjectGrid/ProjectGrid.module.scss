@@ -1,0 +1,6 @@
+// Bootstrap's grid classes handle the columns; this only removes the list markers and padding.
+.list {
+  margin-bottom: 0;
+  padding: 0;
+  list-style: none;
+}

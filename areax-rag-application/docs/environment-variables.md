@@ -16,6 +16,7 @@
 | `PROJECT_MAX_TOTAL_BYTES` | No (104857600) | `104857600` | Total size limit per project (100MB) |
 | `FILE_MAX_BYTES` | No (52428800) | `52428800` | Size limit per file (50MB) |
 | `SEED_PASSWORD` | No | *(none)* | Password for seeded accounts; a random password is generated and printed once when unset |
+| `NEXT_PUBLIC_USE_MOCK_API` | No (`false`) | `true` | Browser-side switch: answer API calls and SSE from the in-memory mock (`src/lib/mock/`). Development only; inlined at build time |
 | `LOG_LEVEL` | No (`info`) | `info` | Log level |
 
 Notes:

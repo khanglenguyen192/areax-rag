@@ -1,0 +1,19 @@
+@use "tokens" as t;
+@use "mixins" as m;
+
+.root {
+  display: grid;
+  gap: t.$space-4;
+
+  @include m.up(md) {
+    grid-template-columns: 16rem minmax(0, 1fr);
+  }
+}
+
+.sidebar {
+  min-width: 0;
+}
+
+.content {
+  min-width: 0;
+}

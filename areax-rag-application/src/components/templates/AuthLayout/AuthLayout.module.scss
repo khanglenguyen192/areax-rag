@@ -1,0 +1,19 @@
+@use "tokens" as t;
+
+.root {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  // iOS Safari ignores `100vh` while the address bar is visible, so use the dynamic unit.
+  min-height: 100dvh;
+  padding: t.$space-4;
+}
+
+.card {
+  width: 100%;
+  max-width: 24rem;
+  padding: t.$space-6 t.$space-5;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  background: var(--color-surface);
+}

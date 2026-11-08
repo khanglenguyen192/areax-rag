@@ -1,0 +1,15 @@
+@use "sass:map";
+@use "tokens" as t;
+
+// Mobile-first: styles apply from the given breakpoint and up.
+@mixin up($name) {
+  @media (min-width: map.get(t.$breakpoints, $name)) {
+    @content;
+  }
+}
+
+@mixin truncate {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

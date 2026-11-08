@@ -1,6 +1,6 @@
 # Coding Standard - areax-rag-application
 
-**Version:** 1.1 | **Last updated:** 2026-11-05
+**Version:** 1.2 | **Last updated:** 2026-11-08
 **Applies to:** all code in `areax-rag-application/` (Next.js, TypeScript).
 
 > This is a **hard** standard: new code and non-trivial changes MUST comply.
@@ -39,7 +39,7 @@
 | Layer | Choice |
 |---|---|
 | Framework | Next.js **App Router**, version 15 or newer (`params` and `searchParams` are Promises: always `await` them) |
-| Runtime | Node.js LTS (pin in `.nvmrc` and `engines`) |
+| Runtime | Node.js 24 LTS (pinned in `.nvmrc` and `engines`) |
 | Package manager | npm, lockfile committed **(provisional)** |
 | Language | TypeScript, `"strict": true`, path alias `@/*` -> `src/*` |
 | UI | MUI; Bootstrap only as layout partials **(provisional)** (section 9) |
@@ -94,7 +94,7 @@ areax-rag-application/
       config/                # validated env
     styles/                  # SCSS: tokens, mixins, vendor imports, globals
     locales/                 # en.json (later vi.json)
-    lib/                     # apiClient and other small non-React helpers
+    lib/                     # apiClient, upload and SSE clients, error helpers; mock/ holds the dev-only mock API (see section 11)
     types/
   docs/
   README.md
@@ -373,7 +373,7 @@ There are **two kinds**, in two places:
 
 | Kind | Folder | Rule | Examples |
 |---|---|---|---|
-| Generic hook | `src/hooks/common/` | No data fetching, no session, no feature knowledge. Any tier may use it | `useDebounce`, `useMediaQuery`, `useT` |
+| Generic hook | `src/hooks/common/` | No API calls, no session, no feature knowledge. It may take a loader or action as an argument (`useAsyncData`, `useAsyncAction`). Any tier may use it | `useDebounce`, `useDisclosure`, `useT`, `useAsyncData` |
 | Data hook | `src/hooks/<feature>/` | Calls `lib/apiClient` or reads the session. Used only by pages, feature compositions and connected wrappers | `useProjects`, `useProjectMembers`, `useThreadMessages` |
 
 Rules:
@@ -394,7 +394,7 @@ Rules:
     - `_mixins.scss`: breakpoint and repeated-pattern mixins
     - `_vendor-bootstrap.scss`: the Bootstrap partials we use
     - `globals.scss`: reset, base typography and the imports above
-  - Use `@use` / `@forward`, not `@import` (deprecated). Share tokens with `@use "@/styles/tokens" as t;`.
+  - Use `@use` / `@forward`, not `@import` (deprecated). Share tokens with `@use "tokens" as t;` (`src/styles` is a Sass load path, set in `next.config.ts`).
   - Define tokens once as **CSS custom properties** (for example `--color-primary`) so SCSS and the MUI theme read the same values **(provisional: exact mechanism)**. Never hard-code a color or spacing value that duplicates a token.
   - Nest at most 3 levels. No ID selectors, no element selectors outside the reset, no `!important`.
   - Responsive: mobile-first, using breakpoint mixins from `_mixins.scss`; no ad hoc media queries.
@@ -450,6 +450,8 @@ Do not introduce a global store (Redux, Zustand...) without a recorded decision.
 - Do not fetch the same data in two places: one hook per resource, result passed down.
 - An API failure must surface as an **error state**, never as an empty list: the hook sets `error` and the view renders it.
 - Initial page data may be loaded in a server component that calls a service directly and passes the result to client components as props, when that removes a loading state **(provisional)**.
+
+**Mock API (development only).** With `NEXT_PUBLIC_USE_MOCK_API=true`, `lib/api-client.ts` answers from `src/lib/mock/` and `lib/sse/event-stream.ts` uses an in-memory stream, so the UI runs without a server. The mock returns the real `ApiResponse` envelope and the codes in `docs/error-codes.md`; when an API shape or code changes, change the mock in the same change. Mock code is loaded with a dynamic import and is not part of a build without the flag. Mock accounts are fixtures, never real credentials.
 
 **SSE on the client.** One `EventSource` per tab for the whole user, managed by a single provider. Components subscribe by `threadId`. Do not open an `EventSource` per component or per project.
 

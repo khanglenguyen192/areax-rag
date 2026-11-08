@@ -2,7 +2,7 @@
 
 The web application of **areax-rag**: the UI and the server (BE) in one Next.js project.
 
-> **Status: folders initialized, no code yet.** The folder structure from `CODING_STANDARD.md` exists (empty folders hold a `.gitkeep` so git tracks them), together with `.gitignore` and `.env.example`. There is no `package.json` and nothing is installed. Commands to install and run will be added when the project is scaffolded.
+> **Status: UI implemented, server not yet.** The pages (login, home, project with documents, prompt, chat and members) are built against a **mock API** that runs in the browser. The route handlers, Prisma schema, Auth.js, Kafka and S3 code under `src/server/` and `src/app/api/` do not exist yet.
 
 ## What it does
 
@@ -40,7 +40,25 @@ areax-rag-application/
 
 The full rules are in [`CODING_STANDARD.md`](CODING_STANDARD.md).
 
-## Running locally (target workflow)
+## Run the UI now (mock API)
+
+Needs Node.js 24 (`.nvmrc`). No database, Kafka or VPS is required.
+
+```bash
+npm install
+npm run dev:mock        # http://localhost:3000, redirects to /login
+```
+
+Sign in with `alice`, `bob` or `carol` and the password `password`. These accounts exist only in the in-memory mock (`src/lib/mock/`). Data resets when you restart the server. Uploads are simulated, a document turns *Ready* four seconds after upload, and chat answers are a canned text streamed token by token.
+
+Other scripts: `npm run lint`, `npm run typecheck`, `npm run build`, `npm run format`.
+
+### How the mock works
+
+`NEXT_PUBLIC_USE_MOCK_API=true` makes `lib/api-client.ts` answer from `src/lib/mock/` instead of calling `fetch`, and makes `lib/sse/event-stream.ts` use an in-memory stream instead of `EventSource`. The mock returns the same `ApiResponse` envelope and error codes as the real server will, so hooks and components do not change when the server arrives: build the route handlers and run `npm run dev` without the flag. The mock code is not included in a build made without the flag.
+
+## Running with the real server (target workflow, not available yet)
+
 
 In this phase the application runs on your own machine and reaches Postgres, Kafka and Floci on the VPS through an SSH tunnel.
 
