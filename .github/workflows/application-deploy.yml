@@ -25,6 +25,8 @@ env:
 jobs:
   build:
     name: Build and push image
+    # A manual run could be started from any branch; only deployment/prod may deploy.
+    if: github.ref == 'refs/heads/deployment/prod'
     runs-on: ubuntu-latest
     outputs:
       image: ${{ steps.ref.outputs.image }}

@@ -17,7 +17,7 @@ GitHub Actions: .github/workflows/application-deploy.yml
 VPS: docker compose pull && up -d  ->  health check  ->  roll back if unhealthy
 ```
 
-- **Trigger:** a push to `deployment/prod` that touches `areax-rag-application/**` or the workflow file, or a manual run (`workflow_dispatch`). Pushes to `develop` deploy nothing.
+- **Trigger:** a push to `deployment/prod` that touches `areax-rag-application/**` or the workflow file, or a manual run (`workflow_dispatch`). Pushes to `develop` deploy nothing, and the jobs refuse to run from any branch other than `deployment/prod`. Creating the branch at a commit that already exists on `develop` changes no files, so the `paths` filter does not fire; start the first deploy with **Run workflow** (Actions tab, branch `deployment/prod`).
 - **Image:** one Docker Hub repository for the whole project, one tag family per component. The application uses `application-<7-char commit sha>` and `application-latest`. The Python services will use `service-...` later. This fits the free plan's single private repository.
 - **No quality gate.** This was a decision (see `areax-rag-requirement`). `npm run build` inside the Docker build still fails on type errors, but lint is not run.
 - **Infrastructure is not redeployed** by this pipeline. Postgres, Kafka and Floci are started by hand (`areax-rag-infra`).
