@@ -19,7 +19,8 @@ permissions:
   contents: read
 
 env:
-  IMAGE: ${{ secrets.DOCKERHUB_USERNAME }}/${{ vars.DOCKERHUB_REPOSITORY }}
+  # The repository name may be stored as a variable or as a secret; accept either.
+  IMAGE: ${{ secrets.DOCKERHUB_USERNAME }}/${{ vars.DOCKERHUB_REPOSITORY || secrets.DOCKERHUB_REPOSITORY }}
 
 jobs:
   build:
@@ -55,7 +56,7 @@ jobs:
     name: Deploy to the VPS
     needs: build
     runs-on: ubuntu-latest
-    environment: production
+    environment: prod
     steps:
       - uses: actions/checkout@v4
 
@@ -81,6 +82,22 @@ jobs:
             areax-rag-application/deploy/compose.yml \
             areax-rag-application/deploy/deploy.sh \
             "$USER_NAME@$HOST:~/areax-rag/application/"
+
+      - name: Write runtime environment (optional)
+        env:
+          HOST: ${{ secrets.VPS_HOST }}
+          USER_NAME: ${{ secrets.VPS_USER }}
+          PORT: ${{ secrets.VPS_PORT || '22' }}
+          APP_ENV: ${{ secrets.APPLICATION_ENV }}
+        run: |
+          # Without the secret, the application.env already on the VPS is kept.
+          if [ -z "$APP_ENV" ]; then
+            echo "APPLICATION_ENV is not set; keeping the file on the VPS."
+            exit 0
+          fi
+          # Sent over stdin so the values never appear in a command line or in the log.
+          printf '%s\n' "$APP_ENV" | ssh -i ~/.ssh/id_deploy -p "$PORT" "$USER_NAME@$HOST" \
+            'umask 077; cat > ~/areax-rag/application/application.env'
 
       - name: Deploy
         env:

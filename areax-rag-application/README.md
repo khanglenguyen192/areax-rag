@@ -82,4 +82,5 @@ In this phase the application runs on your own machine and reaches Postgres, Kaf
 - [`docs/db-ownership.md`](docs/db-ownership.md)
 - [`docs/environment-variables.md`](docs/environment-variables.md)
 - [`docs/deployment.md`](docs/deployment.md)
+- [`docs/diagrams/`](docs/diagrams/README.md): architecture and deployment pipeline (draw.io)
 - Requirements: [`../areax-rag-requirement/en/`](../areax-rag-requirement/en/00-overview.md)

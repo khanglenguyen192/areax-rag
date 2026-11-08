@@ -1,5 +1,7 @@
 # Application architecture
 
+Diagram: [`diagrams/architecture.drawio`](diagrams/architecture.drawio) (open it in draw.io).
+
 Full system design: [`../../areax-rag-requirement/en/03-architecture.md`](../../areax-rag-requirement/en/03-architecture.md). This page summarizes what the application is responsible for.
 
 ## Responsibilities

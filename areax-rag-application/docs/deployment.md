@@ -4,6 +4,8 @@ How the application reaches the VPS. Everything here is written but **has not ru
 
 ## Overview
 
+Diagram: [`diagrams/deployment-pipeline.drawio`](diagrams/deployment-pipeline.drawio) (open it in draw.io).
+
 ```
 push to deployment/prod
    |
@@ -37,17 +39,19 @@ VPS: docker compose pull && up -d  ->  health check  ->  roll back if unhealthy
 
 ### 1. Docker Hub
 
-1. Create a **private** repository, for example `areax-rag`.
+1. Create a repository, for example `areax-rag`. It may be **public** (the source code is already public and the image holds no secrets; the VPS then pulls without logging in) or private. Never put a secret in the image: pass secrets at run time through `application.env`, not through build arguments.
 2. Create an access token (Account settings, Security) with *Read & Write* scope. Use it as `DOCKERHUB_TOKEN`; never use your password.
-3. Check the current free-plan limits for private repositories and pulls before relying on this (an open item in `areax-rag-requirement/en/99-open-questions.md`).
+3. If the repository is private, check the current free-plan limits first (an open item in `areax-rag-requirement/en/99-open-questions.md`).
 
 ### 2. The VPS
 
 1. Docker Engine with the Compose plugin is installed, and infra is running (`areax-rag-infra/docs/first-time-setup.md`).
-2. **Log in to Docker Hub on the VPS once** with a *read-only* token, so it can pull the private image: `docker login -u <user>`. The credentials stay in the deploy user's `~/.docker/config.json`; the pipeline never sends them.
+2. **Only for a private repository:** log in to Docker Hub on the VPS once with a *read-only* token, so it can pull the image: `docker login -u <user>`. The credentials stay in the deploy user's `~/.docker/config.json`; the pipeline never sends them.
 3. A dedicated deploy user in the `docker` group, with a key pair used only for this pipeline. Add the public key to its `~/.ssh/authorized_keys`.
 4. Allow the application port in the VPS firewall (`3000/tcp`). Nothing else is opened. There is no domain or HTTPS yet, so traffic is plain HTTP.
-5. Create the runtime environment file by hand. Its content follows [`environment-variables.md`](environment-variables.md); the values for Postgres, Kafka and Floci are the same ones the infra compose files use:
+5. Provide the runtime environment file, either by creating it by hand (below) or by setting the `APPLICATION_ENV` secret (see the GitHub section), which the pipeline writes to the same path on every deploy.
+
+   To create it by hand: Its content follows [`environment-variables.md`](environment-variables.md); the values for Postgres, Kafka and Floci are the same ones the infra compose files use:
 
    ```bash
    mkdir -p ~/areax-rag/application
@@ -59,7 +63,7 @@ VPS: docker compose pull && up -d  ->  health check  ->  roll back if unhealthy
 
 ### 3. GitHub
 
-Create an **Environment** named `production` (Settings, Environments). Optionally add *required reviewers* to approve each deploy.
+Create an **Environment** named `prod` (Settings, Environments). The deploy job uses it, so a secret stored in that environment (such as `APPLICATION_ENV`) is visible only to the deploy job. Optionally add *required reviewers* to approve each deploy.
 
 Repository **secrets** (Settings, Secrets and variables, Actions):
 
@@ -73,7 +77,9 @@ Repository **secrets** (Settings, Secrets and variables, Actions):
 | `VPS_KNOWN_HOSTS` | Output of `ssh-keyscan -p <port> <host>`, checked against the VPS's real host key before saving. This pins the server so the pipeline cannot be pointed at an impostor |
 | `VPS_PORT` | Optional; defaults to `22` |
 
-Repository **variable**: `DOCKERHUB_REPOSITORY` (for example `areax-rag`).
+Optional secret `APPLICATION_ENV`: the whole content of `application.env`, one `KEY=value` per line. When set, each deploy overwrites the file on the VPS (mode 600); when empty, the file on the VPS is kept. The values pass through GitHub, so use it only if you accept that.
+
+`DOCKERHUB_REPOSITORY` may be a repository **variable** or a secret; the workflow accepts either. Example value: `areax-rag`.
 
 The repository is public. Secrets are not exposed to pull requests from forks, and the workflow runs only on pushes to `deployment/prod`. Protect that branch (Settings, Branches) so only you can push or merge to it.
 
