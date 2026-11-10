@@ -8,7 +8,7 @@ Order of work to bring the infrastructure up. Steps 1 to 5 run **on the VPS**, s
 
 | Piece | What is initialized | By what | When |
 |---|---|---|---|
-| Postgres | An application role (`CREATEDB`, not superuser) and an empty database | `compose/postgres/initdb/01-create-app-role-and-db.sh` | Once, when the data volume is empty |
+| Postgres | The user, password and an empty database from `POSTGRES_USER`, `POSTGRES_PASSWORD`, `POSTGRES_DB` | The `postgres` image, from `compose/.env` | Once, when the data volume is empty |
 | Postgres | Tables | The application (`prisma migrate`) | When the application is set up, not here |
 | Kafka | Topics from `compose/kafka/topics.txt` (provisional names) | `scripts/init-kafka-topics.sh` | After Kafka is up; safe to repeat |
 | Floci | Documents bucket, vector bucket, chunk index | `scripts/deploy-cloudformation.sh` | After Floci is up; safe to repeat |
@@ -27,17 +27,18 @@ Order of work to bring the infrastructure up. Steps 1 to 5 run **on the VPS**, s
    ```bash
    cp compose/.env.example compose/.env
    chmod 600 compose/.env
-   # edit compose/.env: POSTGRES_ADMIN_PASSWORD and APP_DB_PASSWORD are required
+   # edit compose/.env: POSTGRES_PASSWORD is required (use a long random one)
    ```
 
    `compose/.env` is never committed.
 
-3. **Floci and Postgres that already run on the VPS.** `compose/floci.compose.yml` mirrors the Floci instance you already run (container `floci`), so do not start it again: skip `up floci`. Only recreate Floci if you want the stricter CloudFormation setting or a pinned version; then follow the header of that file (remove the old container, keep its volume, set `FLOCI_VOLUME`). If you keep an existing Postgres, create the application role and database inside it instead of running `up postgres` (see [`existing-postgres.md`](existing-postgres.md)).
+3. **Floci already runs on the VPS.** `compose/floci.compose.yml` mirrors that instance (container `floci`), so do not start it again: skip `up floci`. Only recreate Floci if you want the stricter CloudFormation setting or a pinned version; then follow the header of that file (remove the old container, keep its volume, set `FLOCI_VOLUME`).
 
 4. **Start the services**:
 
    ```bash
-   ./scripts/infra.sh up kafka     # a new Kafka; add `up postgres` only for a new Postgres
+   ./scripts/infra.sh up postgres
+   ./scripts/infra.sh up kafka
    ./scripts/infra.sh ps all        # or: ps postgres | kafka | floci
    ```
 
@@ -74,7 +75,7 @@ Order of work to bring the infrastructure up. Steps 1 to 5 run **on the VPS**, s
    nc -z localhost 5432 && nc -z localhost 9094 && echo "tunnel ports answer"
    ```
 
-   Then connect a Postgres client with the application role from `compose/.env`, and a Kafka client to `localhost:9094` (list topics, produce and consume one message). Record the results in [`known-risks.md`](known-risks.md).
+   Then connect a Postgres client with `POSTGRES_USER` and `POSTGRES_PASSWORD` from `compose/.env`, and a Kafka client to `localhost:9094` (list topics, produce and consume one message). Record the results in [`known-risks.md`](known-risks.md).
 
 ## Day-to-day
 

@@ -28,7 +28,7 @@
 | 7 | Whether Floci needs the `/var/run/docker.sock` mount | Not checked | |
 | 8 | Presigned PUT upload from the browser to Floci through the tunnel (CORS) | Not tested | |
 | 9 | The three compose files start on the VPS and pass their health checks | Not tested (only `docker compose config` was run) | |
-| 10 | Postgres first-start script creates the role and database (no `psql` was available to run it here) | Not tested | |
+| 10 | `postgres.compose.yml` starts with `POSTGRES_DB`, `POSTGRES_USER` and `POSTGRES_PASSWORD` from `compose/.env`, healthy, reachable only through the tunnel | Not tested | |
 | 11 | `apache/kafka:4.3.2` accepts the environment variables in `kafka.compose.yml`; the data volume is writable; the health check works | Not tested | |
 | 12 | `init-kafka-topics.sh` against a real Kafka | Not tested (stub `docker` only) | |
 | 13 | Floci 2.4.0 starts without the Docker socket and with unsupported CloudFormation types set to fail; whether the `-baseline` or `-compat` image variants are needed for the VPS CPU | Not tested | |

@@ -26,7 +26,6 @@ areax-rag-infra/
     kafka.compose.yml
     floci.compose.yml
     .env.example            # placeholders only; the real compose/.env is never committed
-    postgres/initdb/        # first-start scripts for Postgres
     kafka/topics.txt        # topics to create
   cloudformation/
     storage.yml             # S3 bucket, S3 vector bucket and index

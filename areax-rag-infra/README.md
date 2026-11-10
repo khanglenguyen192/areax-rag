@@ -8,11 +8,10 @@ In this phase infrastructure is **run by hand**. There is no CI/CD for this fold
 
 | Path | Purpose |
 |---|---|
-| `compose/postgres.compose.yml` | Postgres 16; creates an application role and database on first start |
+| `compose/postgres.compose.yml` | Postgres 16; user, password and database come from `compose/.env`; bound to `127.0.0.1` only |
 | `compose/kafka.compose.yml` | Kafka (single broker, KRaft) with an internal and an external listener |
 | `compose/floci.compose.yml` | Floci with persistent storage |
 | `compose/.env.example` | Placeholders for passwords, limits and versions (copy to `compose/.env`) |
-| `compose/postgres/initdb/` | First-start SQL/shell for Postgres |
 | `compose/kafka/topics.txt` | Topics to create (provisional names) |
 | `cloudformation/storage.yml` | Documents bucket, vector bucket and shared chunk index |
 | `cdk/` | The same storage resources in AWS CDK (TypeScript). A learning exercise, never deployed; see `cdk/README.md` |
