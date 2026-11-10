@@ -1,0 +1,11 @@
+# AWS CDK (learning module)
+node_modules/
+cdk.out/
+dist/
+# Synthesized and compiled output
+*.js
+*.d.ts
+# CDK caches lookups (account ids, availability zones) here; never commit it
+cdk.context.json
+.cdk.staging/
+*.tsbuildinfo

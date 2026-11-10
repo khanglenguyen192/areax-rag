@@ -15,6 +15,7 @@ In this phase infrastructure is **run by hand**. There is no CI/CD for this fold
 | `compose/postgres/initdb/` | First-start SQL/shell for Postgres |
 | `compose/kafka/topics.txt` | Topics to create (provisional names) |
 | `cloudformation/storage.yml` | Documents bucket, vector bucket and shared chunk index |
+| `cdk/` | The same storage resources in AWS CDK (TypeScript). A learning exercise, never deployed; see `cdk/README.md` |
 | `scripts/infra.sh` | Start, stop and inspect the containers (run on the VPS) |
 | `scripts/init-kafka-topics.sh` | Create the Kafka topics (run on the VPS) |
 | `scripts/tunnel.sh` | Open, close or check the SSH tunnel (run on your machine) |
