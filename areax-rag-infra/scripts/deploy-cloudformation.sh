@@ -58,7 +58,9 @@ Environment variables (all optional):
   TEMPLATE_FILE           Template path         (default: ../cloudformation/storage.yml)
   PARAMETERS              Space-separated Key=Value template parameters, for example:
                           "VectorDimension=1536 DocumentsBucketName=areax-rag-documents"
-                          Values must not contain spaces.
+                          Values must not contain spaces. On an update, a parameter you leave out
+                          keeps the value it has in the stack (UsePreviousValue), so you only
+                          pass what you want to change. To clear one, pass "Key=" with no value.
   ALLOW_REMOTE_ENDPOINT   Set to 1 to allow a non-local endpoint (default: 0)
   USE_DEPLOY              Set to 1 to use "aws cloudformation deploy" (unverified on Floci)
   FLOCI_ACCESS_KEY_ID     Dummy access key      (default: test)
@@ -128,7 +130,26 @@ parse_parameters() {
   done
 }
 
-# Write a CloudFormation parameters JSON file from PARAM_PAIRS.
+# Parameters of the existing stack that this run does not override. They are sent with
+# UsePreviousValue so an update does not silently reset them to the template defaults.
+USE_PREVIOUS_KEYS=()
+collect_previous_keys() {
+  USE_PREVIOUS_KEYS=()
+  local existing key pair overridden
+  existing="$(cf describe-stacks --stack-name "$STACK_NAME" \
+    --query 'Stacks[0].Parameters[].ParameterKey' --output text 2>/dev/null || true)"
+  [[ -n "$existing" && "$existing" != "None" ]] || return 0
+  for key in $existing; do
+    overridden=0
+    for pair in ${PARAM_PAIRS[@]+"${PARAM_PAIRS[@]}"}; do
+      [[ "${pair%%=*}" == "$key" ]] && overridden=1
+    done
+    [[ $overridden -eq 0 ]] && USE_PREVIOUS_KEYS+=("$key")
+  done
+  return 0
+}
+
+# Write a CloudFormation parameters JSON file from PARAM_PAIRS and USE_PREVIOUS_KEYS.
 write_parameters_file() {
   local file="$1" first=1 pair key value
   printf '[' >"$file"
@@ -139,6 +160,11 @@ write_parameters_file() {
     first=0
     printf '{"ParameterKey":"%s","ParameterValue":"%s"}' \
       "$(json_escape "$key")" "$(json_escape "$value")" >>"$file"
+  done
+  for key in ${USE_PREVIOUS_KEYS[@]+"${USE_PREVIOUS_KEYS[@]}"}; do
+    if [[ $first -eq 0 ]]; then printf ',' >>"$file"; fi
+    first=0
+    printf '{"ParameterKey":"%s","UsePreviousValue":true}' "$(json_escape "$key")" >>"$file"
   done
   printf ']' >>"$file"
 }
@@ -182,8 +208,12 @@ create_or_update_stack() {
   local status
   status="$(stack_status)"
 
+  case "$status" in
+    CREATE_COMPLETE | UPDATE_COMPLETE | UPDATE_ROLLBACK_COMPLETE) collect_previous_keys ;;
+  esac
+
   local -a param_args=()
-  if [[ ${#PARAM_PAIRS[@]} -gt 0 ]]; then
+  if [[ ${#PARAM_PAIRS[@]} -gt 0 || ${#USE_PREVIOUS_KEYS[@]} -gt 0 ]]; then
     TMP_PARAMS_FILE="$(mktemp)"
     write_parameters_file "$TMP_PARAMS_FILE"
     param_args=(--parameters "file://${TMP_PARAMS_FILE}")

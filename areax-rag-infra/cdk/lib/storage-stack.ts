@@ -11,8 +11,8 @@ export interface StorageStackProps extends cdk.StackProps {
   /** Embedding dimension; 1536 matches text-embedding-3-small. Cannot change on an existing index. */
   readonly vectorDimension: number;
   readonly distanceMetric: "cosine" | "euclidean";
-  /** One browser origin allowed to upload with a presigned URL. */
-  readonly corsAllowedOrigin: string;
+  /** Browser origins allowed to upload with a presigned URL (the local app, and optionally the deployed one). */
+  readonly corsAllowedOrigins: readonly string[];
 }
 
 export const DEFAULT_STORAGE_SETTINGS = {
@@ -21,7 +21,7 @@ export const DEFAULT_STORAGE_SETTINGS = {
   vectorIndexName: "areax-rag-chunks",
   vectorDimension: 1536,
   distanceMetric: "cosine",
-  corsAllowedOrigin: "http://localhost:3000",
+  corsAllowedOrigins: ["http://localhost:3000"],
 } as const satisfies Omit<StorageStackProps, keyof cdk.StackProps>;
 
 /**
@@ -40,7 +40,7 @@ export class StorageStack extends cdk.Stack {
       removalPolicy: cdk.RemovalPolicy.RETAIN,
       cors: [
         {
-          allowedOrigins: [props.corsAllowedOrigin],
+          allowedOrigins: [...props.corsAllowedOrigins],
           allowedMethods: [s3.HttpMethods.GET, s3.HttpMethods.PUT, s3.HttpMethods.HEAD],
           allowedHeaders: ["*"],
           exposedHeaders: ["ETag"],

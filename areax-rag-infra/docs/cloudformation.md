@@ -21,9 +21,10 @@ All three have `DeletionPolicy: Retain` and `UpdateReplacePolicy: Retain`, so de
 | `VectorIndexName` | `areax-rag-chunks` | |
 | `VectorDimension` | `1536` | Matches `text-embedding-3-small`. Cannot be changed on an existing index |
 | `DistanceMetric` | `cosine` | `cosine` or `euclidean`. Cannot be changed on an existing index |
-| `CorsAllowedOrigin` | `http://localhost:3000` | One browser origin allowed to upload to the documents bucket. Use `http://<vps-address>:3000` for the deployed application |
+| `CorsAllowedOrigin` | `http://localhost:3000` | Browser origin of the application running on your machine, allowed to upload to the documents bucket |
+| `CorsAllowedOriginDeployed` | *(empty)* | Optional second origin for the deployed application, for example `http://<vps-address>:3000`. Empty means only the first origin is allowed |
 
-The index's non-filterable metadata key (`text`) is written inline in the template, not as a parameter. Floci passes a comma-separated list parameter on as a plain string, which broke the index and silently dropped the CORS origins (see the notes at the top of `cloudformation/storage.yml`).
+The index's non-filterable metadata key (`text`) is written inline in the template, not as a parameter. Floci passes a comma-separated list parameter on as a plain string, which broke the index and silently dropped the CORS origins (see the notes at the top of `cloudformation/storage.yml`). The two origins are therefore two `String` parameters, and a condition removes the second one when it is empty. This was tested on Floci: creating with two origins gives two, and updating with the second left empty gives one.
 
 ## Outputs
 
@@ -32,12 +33,12 @@ The index's non-filterable metadata key (`text`) is written inline in the templa
 ## Passing parameters
 
 ```bash
-PARAMETERS="VectorDimension=1536 CorsAllowedOrigin=http://localhost:3000" \
+PARAMETERS="VectorDimension=1536 CorsAllowedOriginDeployed=http://<vps-address>:3000" \
   ./scripts/deploy-cloudformation.sh
 ```
 
 - `PARAMETERS` is a space-separated list of `Key=Value`. Values must not contain spaces. Commas are fine.
-- **Pass the same `PARAMETERS` on every run.** On update, any parameter you leave out reverts to its default. Resetting the dimension or metric on an existing index would try to replace it. Keep your values in a small shell file that you `source` before running the script.
+- **On an update, a parameter you leave out keeps the value it has in the stack.** The script sends `UsePreviousValue` for it, so you pass only what you want to change, and a plain `./scripts/deploy-cloudformation.sh` changes nothing. To clear a value pass `Key=` with nothing after it; to set it back to a default pass that value explicitly. On a first run, omitted parameters use the template defaults.
 
 ## Changing the embedding model
 

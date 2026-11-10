@@ -24,7 +24,7 @@ Ignored by git (`.gitignore` in this folder): `node_modules/`, `cdk.out/`, `dist
 | **L1 construct** (`Cfn...`): a one-to-one wrapper of a CloudFormation resource, used when there is no L2 yet. S3 Vectors has none, so it uses `CfnVectorBucket` and `CfnIndex` | `VectorBucket`, `ChunkIndex` |
 | **Removal policy**: `RETAIN` is the CDK way to write `DeletionPolicy: Retain` | `removalPolicy`, `applyRemovalPolicy` |
 | **Explicit dependency** when two resources refer to each other by plain strings, so CDK cannot infer the order | `chunkIndex.addDependency(vectorBucket)` |
-| **Context**: values passed with `-c key=value` instead of CloudFormation parameters | `corsAllowedOrigin` in `bin/app.ts` |
+| **Context**: values passed with `-c key=value` instead of CloudFormation parameters | `corsAllowedOrigin` and `corsAllowedOriginDeployed` in `bin/app.ts` |
 | **Outputs** | `CfnOutput` at the end of the stack |
 
 ## How it maps to the template
@@ -53,7 +53,7 @@ cd areax-rag-infra/cdk
 npm install
 npm run typecheck                 # compile check only
 npx cdk synth                     # writes the CloudFormation template to cdk.out/
-npx cdk synth -c corsAllowedOrigin=http://example.test:3000
+npx cdk synth -c corsAllowedOriginDeployed=http://example.test:3000   # a second CORS origin
 ```
 
 `cdk synth` was run once while this module was written. The generated template contains the same three resources as `storage.yml`, all with `Retain`, the CORS origin, and an index of dimension 1536, cosine, with `text` as the non-filterable key. The real `cdk deploy` was never run.

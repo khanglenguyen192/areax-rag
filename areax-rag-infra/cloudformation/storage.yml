@@ -11,7 +11,8 @@ Description: >-
 # - No CommaDelimitedList parameters. Floci passes them on as a plain string instead of a list,
 #   which made the index fail ("NonFilterableMetadataKeys must be a list of strings") and made
 #   the bucket's CORS rule lose its AllowedOrigins without any error. Lists are written inline,
-#   so allowing a second browser origin means adding one more `- !Ref` entry (and a parameter).
+#   so each browser origin has its own String parameter. The second one is optional: a condition
+#   drops it from the list when it is empty.
 # - Floci skips unsupported resource types silently (WARN only). Run Floci with
 #   FLOCI_SERVICES_CLOUDFORMATION_ALLOW_STUB_UNSUPPORTED_RESOURCE_TYPES=false.
 
@@ -53,8 +54,18 @@ Parameters:
     Type: String
     Default: "http://localhost:3000"
     Description: >-
-      Browser origin allowed to upload to and read from the documents bucket (presigned URLs),
-      for example http://<vps-address>:3000 for the deployed application. One origin only; see the notes.
+      Browser origin allowed to upload to and read from the documents bucket (presigned URLs).
+      The default is the application running on your own machine.
+
+  CorsAllowedOriginDeployed:
+    Type: String
+    Default: ""
+    Description: >-
+      Optional second origin, for the deployed application, for example http://<vps-address>:3000.
+      Leave empty to allow only CorsAllowedOrigin.
+
+Conditions:
+  HasDeployedOrigin: !Not [!Equals [!Ref CorsAllowedOriginDeployed, ""]]
 
 Resources:
   DocumentsBucket:
@@ -72,6 +83,7 @@ Resources:
         CorsRules:
           - AllowedOrigins:
               - !Ref CorsAllowedOrigin
+              - !If [HasDeployedOrigin, !Ref CorsAllowedOriginDeployed, !Ref "AWS::NoValue"]
             AllowedMethods:
               - GET
               - PUT
