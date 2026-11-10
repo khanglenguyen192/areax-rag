@@ -1,0 +1,146 @@
+// The application owns this schema. The Python services read and write rows but never change it
+// (see docs/db-ownership.md). Every change goes through `prisma migrate`.
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum ProjectRole {
+  OWNER
+  MEMBER
+}
+
+enum DocumentKind {
+  FILE
+  YOUTUBE
+}
+
+// PENDING_UPLOAD: the row exists and a presigned URL was issued, but the file is not confirmed yet.
+// The UI shows it as processing. PROCESSING and the two final states are written by the services.
+enum DocumentStatus {
+  PENDING_UPLOAD
+  PROCESSING
+  READY
+  FAILED
+}
+
+enum MessageRole {
+  USER
+  ASSISTANT
+}
+
+enum MessageStatus {
+  STREAMING
+  DONE
+  FAILED
+}
+
+model User {
+  id                 String   @id @default(cuid())
+  username           String
+  // Lower-cased copy used for lookups, so "Alice" and "alice" are the same account.
+  usernameNormalized String   @unique @map("username_normalized")
+  passwordHash       String   @map("password_hash")
+  isActive           Boolean  @default(true) @map("is_active")
+  createdAt          DateTime @default(now()) @map("created_at")
+
+  memberships ProjectMember[]
+  documents   Document[]
+  threads     Thread[]
+
+  @@map("users")
+}
+
+model Project {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  // The single prompt shared by every member of the project.
+  prompt      String   @default("")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  members   ProjectMember[]
+  documents Document[]
+  threads   Thread[]
+
+  @@map("projects")
+}
+
+model ProjectMember {
+  projectId String      @map("project_id")
+  userId    String      @map("user_id")
+  role      ProjectRole
+  joinedAt  DateTime    @default(now()) @map("joined_at")
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([projectId, userId])
+  @@index([userId])
+  @@map("project_members")
+}
+
+model Document {
+  id           String         @id @default(cuid())
+  projectId    String         @map("project_id")
+  uploadedById String         @map("uploaded_by_id")
+  name         String
+  kind         DocumentKind
+  sizeBytes    Int            @default(0) @map("size_bytes")
+  status       DocumentStatus @default(PENDING_UPLOAD)
+  // Reason code (for example NO_TEXT_LAYER) written by the services when status is FAILED.
+  failureCode  String?        @map("failure_code")
+  // Number of chunks written to the vector index; set by the ingestion service.
+  chunkCount   Int?           @map("chunk_count")
+  // Object key in the documents bucket (FILE) or the video URL (YOUTUBE).
+  storageKey   String?        @map("storage_key")
+  sourceUrl    String?        @map("source_url")
+  createdAt    DateTime       @default(now()) @map("created_at")
+  updatedAt    DateTime       @updatedAt @map("updated_at")
+
+  project    Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  uploadedBy User    @relation(fields: [uploadedById], references: [id])
+
+  @@index([projectId])
+  @@map("documents")
+}
+
+// A thread belongs to one user. Removing that user from the project keeps the thread, so it
+// reappears if they are added again; only the owner of a thread can read it.
+model Thread {
+  id        String   @id @default(cuid())
+  projectId String   @map("project_id")
+  ownerId   String   @map("owner_id")
+  title     String   @default("")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  project  Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  owner    User      @relation(fields: [ownerId], references: [id])
+  messages Message[]
+
+  @@index([projectId, ownerId])
+  @@map("threads")
+}
+
+model Message {
+  id          String        @id @default(cuid())
+  threadId    String        @map("thread_id")
+  role        MessageRole
+  content     String        @default("")
+  status      MessageStatus @default(DONE)
+  // Error code when status is FAILED, written by the chat service or the application.
+  failureCode String?       @map("failure_code")
+  createdAt   DateTime      @default(now()) @map("created_at")
+
+  thread Thread @relation(fields: [threadId], references: [id], onDelete: Cascade)
+
+  @@index([threadId, createdAt])
+  @@map("messages")
+}
