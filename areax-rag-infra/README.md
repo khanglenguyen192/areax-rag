@@ -19,7 +19,7 @@ In this phase infrastructure is **run by hand**. There is no CI/CD for this fold
 | `scripts/init-kafka-topics.sh` | Create the Kafka topics (run on the VPS) |
 | `scripts/tunnel.sh` | Open, close or check the SSH tunnel (run on your machine) |
 | `scripts/deploy-cloudformation.sh` | Create or update the storage stack on Floci (run on your machine) |
-| `docs/` | First-time setup, ports and tunnels, CloudFormation details, known risks |
+| `docs/` | First-time setup, Postgres, ports and tunnels, CloudFormation details, known risks |
 | `CODING_STANDARD.md` | Rules for scripts, templates and compose files |
 
 ## Prerequisites

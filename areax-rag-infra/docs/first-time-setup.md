@@ -8,7 +8,7 @@ Order of work to bring the infrastructure up. Steps 1 to 5 run **on the VPS**, s
 
 | Piece | What is initialized | By what | When |
 |---|---|---|---|
-| Postgres | The user, password and an empty database from `POSTGRES_USER`, `POSTGRES_PASSWORD`, `POSTGRES_DB` | The `postgres` image, from `compose/.env` | Once, when the data volume is empty |
+| Postgres | The user, password and database from `POSTGRES_USER`, `POSTGRES_PASSWORD`, `POSTGRES_DB` (default `postgres` / `postgres`). Application databases are created later by hand, see [`postgres.md`](postgres.md) | The `postgres` image, from `compose/.env` | Once, when the data volume is empty |
 | Postgres | Tables | The application (`prisma migrate`) | When the application is set up, not here |
 | Kafka | Topics from `compose/kafka/topics.txt` (provisional names) | `scripts/init-kafka-topics.sh` | After Kafka is up; safe to repeat |
 | Floci | Documents bucket, vector bucket, chunk index | `scripts/deploy-cloudformation.sh` | After Floci is up; safe to repeat |
