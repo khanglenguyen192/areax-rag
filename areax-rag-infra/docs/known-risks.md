@@ -32,7 +32,7 @@
 | 11 | `apache/kafka:4.3.2` accepts the environment variables in `kafka.compose.yml`; the data volume is writable; the health check works | Not tested | |
 | 12 | `init-kafka-topics.sh` against a real Kafka | Not tested (stub `docker` only) | |
 | 13 | Floci 2.4.0 starts without the Docker socket and with unsupported CloudFormation types set to fail; whether the `-baseline` or `-compat` image variants are needed for the VPS CPU | Not tested | |
-| 14 | Switching from the old Floci compose file (container name, volume reuse through `FLOCI_VOLUME`) | Not tested | |
+| 14 | `floci.compose.yml` still matches the running Floci instance (container `floci`, volume name, image version); recreating it from the file keeps the data | Not tested | |
 | 15 | `tunnel.sh` against the real VPS (open, status, close; port skipping) | Not tested (stub `ssh` and `nc` only) | |
 
 Update the status and result columns as you test, and keep the requirement documents in `../../areax-rag-requirement/` in sync.

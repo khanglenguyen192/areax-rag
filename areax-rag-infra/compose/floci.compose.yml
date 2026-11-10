@@ -1,21 +1,27 @@
 # Floci (virtual AWS: S3, S3 Vectors, CloudFormation) for areax-rag (runs on the VPS).
-# Start with: ../scripts/infra.sh up floci
+#
+# This file mirrors the Floci instance that already runs on the VPS (container "floci", restart
+# always, Docker socket mounted, data in a named volume). It is kept in the repository as the
+# source of truth, not to be re-run over the existing container: running `infra.sh up floci`
+# while the old container exists fails with "container name already in use". To adopt this file,
+# stop and remove the old container first (`docker rm -f floci`), keep its volume, and set
+# FLOCI_VOLUME in compose/.env to that volume's name (`docker volume ls`).
 #
 # - Published on 127.0.0.1 only; reach it through the SSH tunnel at http://localhost:4566.
 # - FLOCI_STORAGE_MODE must be set: the default image uses "memory" and loses everything on restart.
-# - Unsupported CloudFormation resource types fail loudly instead of being skipped silently.
-#
-# If you already run Floci from another compose file, stop it first (the old container is named
-# "floci"). To keep its data, set FLOCI_VOLUME in compose/.env to the old volume name
-# (see `docker volume ls`).
+# - FLOCI_VERSION is pinned (2.4.0); the running instance uses the `latest` tag, so check its
+#   version with `docker inspect floci --format '{{.Config.Image}}'` and `docker images` before
+#   changing it.
+# - Unsupported CloudFormation resource types fail loudly. The running container was started
+#   without this setting, so it only takes effect after the container is recreated.
 
 name: areax-rag-floci
 
 services:
   floci:
     image: floci/floci:${FLOCI_VERSION:-2.4.0}
-    container_name: areax-floci
-    restart: unless-stopped
+    container_name: floci
+    restart: always
     ports:
       - "127.0.0.1:4566:4566"
     environment:
@@ -25,9 +31,10 @@ services:
       FLOCI_SERVICES_CLOUDFORMATION_ALLOW_STUB_UNSUPPORTED_RESOURCE_TYPES: "false"
     volumes:
       - floci_data:/app/data
-      # Very high privilege on the host. Enable ONLY if Floci fails to start or needs to run
-      # containers for the services you use (S3, S3 Vectors and CloudFormation should not).
-      # - /var/run/docker.sock:/var/run/docker.sock
+      # Very high privilege on the host. The running instance mounts it, so it stays for parity.
+      # Remove it if Floci turns out not to need it for S3, S3 Vectors and CloudFormation
+      # (known-risks.md, item 7).
+      - /var/run/docker.sock:/var/run/docker.sock
     mem_limit: ${FLOCI_MEM_LIMIT:-1g}
     # No healthcheck: the image's tools are not documented. Check with:
     #   aws --endpoint-url http://localhost:4566 s3api list-buckets

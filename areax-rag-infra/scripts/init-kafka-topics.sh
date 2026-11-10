@@ -8,7 +8,7 @@ set -euo pipefail
 IFS=$'\n\t'
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-KAFKA_CONTAINER="${KAFKA_CONTAINER:-areax-kafka}"
+KAFKA_CONTAINER="${KAFKA_CONTAINER:-kafka}"
 TOPICS_FILE="${TOPICS_FILE:-${SCRIPT_DIR}/../compose/kafka/topics.txt}"
 KAFKA_BIN="${KAFKA_BIN:-/opt/kafka/bin}"
 BOOTSTRAP="${BOOTSTRAP:-localhost:9092}" # INTERNAL listener, as seen from inside the container
@@ -23,7 +23,7 @@ Usage: init-kafka-topics.sh [-h|--help]
 Creates the topics in compose/kafka/topics.txt inside the Kafka container.
 
 Environment (optional):
-  KAFKA_CONTAINER  Container name            (default: areax-kafka)
+  KAFKA_CONTAINER  Container name            (default: kafka)
   TOPICS_FILE      Topics list               (default: ../compose/kafka/topics.txt)
   KAFKA_BIN        Kafka scripts directory   (default: /opt/kafka/bin)
   BOOTSTRAP        Bootstrap inside container (default: localhost:9092)

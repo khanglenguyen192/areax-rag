@@ -1,4 +1,6 @@
 # Kafka for areax-rag: single broker in KRaft mode (runs on the VPS).
+# A new instance, not an adoption of an existing one. Same conventions as floci.compose.yml:
+# plain container name, restart always, ports on 127.0.0.1 only.
 # Start with: ../scripts/infra.sh up kafka     then create topics: ../scripts/init-kafka-topics.sh
 #
 # Two listeners, one broker:
@@ -12,8 +14,8 @@ name: areax-rag-kafka
 services:
   kafka:
     image: apache/kafka:4.3.2
-    container_name: areax-kafka
-    restart: unless-stopped
+    container_name: kafka
+    restart: always
     ports:
       - "127.0.0.1:9094:9094"
     environment:

@@ -32,14 +32,12 @@ Order of work to bring the infrastructure up. Steps 1 to 5 run **on the VPS**, s
 
    `compose/.env` is never committed.
 
-3. **If Floci already runs from another compose file**, stop it first. The old container is named `floci`, and the new one is `areax-floci`. To keep the existing data, find the old volume with `docker volume ls` and set `FLOCI_VOLUME` in `compose/.env` to that name. Otherwise a new, empty volume is used.
+3. **Floci and Postgres that already run on the VPS.** `compose/floci.compose.yml` mirrors the Floci instance you already run (container `floci`), so do not start it again: skip `up floci`. Only recreate Floci if you want the stricter CloudFormation setting or a pinned version; then follow the header of that file (remove the old container, keep its volume, set `FLOCI_VOLUME`). If you keep an existing Postgres, create the application role and database inside it instead of running `up postgres` (see [`existing-postgres.md`](existing-postgres.md)).
 
 4. **Start the services**:
 
    ```bash
-   ./scripts/infra.sh up postgres
-   ./scripts/infra.sh up kafka
-   ./scripts/infra.sh up floci
+   ./scripts/infra.sh up kafka     # a new Kafka; add `up postgres` only for a new Postgres
    ./scripts/infra.sh ps all        # or: ps postgres | kafka | floci
    ```
 
