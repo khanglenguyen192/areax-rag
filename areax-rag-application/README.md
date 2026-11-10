@@ -2,7 +2,7 @@
 
 The web application of **areax-rag**: the UI and the server (BE) in one Next.js project.
 
-> **Status: UI implemented, server not yet.** The pages (login, home, project with documents, prompt, chat and members) are built against a **mock API** that runs in the browser. The route handlers, Prisma schema, Auth.js, Kafka and S3 code under `src/server/` and `src/app/api/` do not exist yet.
+> **Status: UI and server implemented and tested end to end on 2026-11-10** against the real Postgres, Kafka and Floci on the VPS (through the tunnel): 58 API checks plus a browser run, all passing. There are no automated tests in the repository (a project decision); the checks were run once by hand. The **Python services do not exist yet**, so questions are saved and published to Kafka but never answered. The deployed container has not been given a database yet.
 
 ## What it does
 
@@ -57,15 +57,23 @@ Other scripts: `npm run lint`, `npm run typecheck`, `npm run build`, `npm run fo
 
 `NEXT_PUBLIC_USE_MOCK_API=true` makes `lib/api-client.ts` answer from `src/lib/mock/` instead of calling `fetch`, and makes `lib/sse/event-stream.ts` use an in-memory stream instead of `EventSource`. The mock returns the same `ApiResponse` envelope and error codes as the real server will, so hooks and components do not change when the server arrives: build the route handlers and run `npm run dev` without the flag. The mock code is not included in a build made without the flag.
 
-## Running with the real server (target workflow, not available yet)
-
+## Running with the real server
 
 In this phase the application runs on your own machine and reaches Postgres, Kafka and Floci on the VPS through an SSH tunnel.
 
-1. Open the tunnel: `ssh -f -N <your-ssh-alias>` (see [`../areax-rag-infra/docs/ports-and-tunnels.md`](../areax-rag-infra/docs/ports-and-tunnels.md)).
-2. Deploy the storage stack once: `../areax-rag-infra/scripts/deploy-cloudformation.sh`.
-3. Copy `.env.example` to `.env` and fill in the values (names in [`docs/environment-variables.md`](docs/environment-variables.md)).
-4. Install dependencies, run migrations, seed accounts, start the dev server. *(Commands to be added after scaffolding.)*
+1. Open the tunnel (see [`../areax-rag-infra/docs/ports-and-tunnels.md`](../areax-rag-infra/docs/ports-and-tunnels.md)) and make sure the storage stack exists (`../areax-rag-infra/scripts/deploy-cloudformation.sh`).
+2. Create the database once: `docker exec -it postgres psql -U postgres -c "CREATE DATABASE areax_rag;"` on the VPS ([`../areax-rag-infra/docs/postgres.md`](../areax-rag-infra/docs/postgres.md)).
+3. Copy `.env.example` to `.env` and fill it in (names in [`docs/environment-variables.md`](docs/environment-variables.md)). `AUTH_SECRET` comes from `openssl rand -base64 32`.
+4. Install, migrate, seed and start:
+
+   ```bash
+   npm install
+   npm run db:migrate                                   # applies prisma/migrations
+   SEED_USERNAMES=alice,bob npm run db:seed             # prints a generated password per new account
+   npm run dev                                          # http://localhost:3000
+   ```
+
+Questions are saved and published to Kafka, but nothing answers them until the Python `chat` service exists.
 
 ## Key rules
 
@@ -81,6 +89,7 @@ In this phase the application runs on your own machine and reaches Postgres, Kaf
 - [`docs/error-codes.md`](docs/error-codes.md)
 - [`docs/db-ownership.md`](docs/db-ownership.md)
 - [`docs/environment-variables.md`](docs/environment-variables.md)
+- [`docs/api.md`](docs/api.md)
 - [`docs/deployment.md`](docs/deployment.md)
 - [`docs/diagrams/`](docs/diagrams/README.md): architecture and deployment pipeline (draw.io)
 - Requirements: [`../areax-rag-requirement/en/`](../areax-rag-requirement/en/00-overview.md)

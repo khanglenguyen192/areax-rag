@@ -88,6 +88,7 @@ areax-rag-application/
       services/              # business logic
       repositories/          # Prisma access
       kafka/                 # producer and consumer singletons
+      s3/                    # object storage client (presigned URLs, head, delete)
       sse/                   # SSE hub (user -> connections)
       errors/                # AppError, error codes
       http/                  # ApiResponse helpers, requestId, handler wrapper

@@ -114,6 +114,20 @@ cd ~/areax-rag/application
 
 Older tags stay on Docker Hub. Delete tags you no longer need to stay under the free plan's limits.
 
+## Browser uploads from the deployed application
+
+A file goes from the browser straight to Floci with a presigned URL, so two things must line up:
+
+- `S3_PUBLIC_ENDPOINT` in `APPLICATION_ENV` is the address the **browser** uses for Floci. `http://localhost:4566` works only on a machine that has the SSH tunnel open (Floci is not exposed to the internet).
+- The documents bucket must allow the application's origin. Add it to the CloudFormation stack, keeping the local origin:
+
+  ```bash
+  cd areax-rag-infra
+  PARAMETERS="CorsAllowedOriginDeployed=http://<vps-address>:3000" ./scripts/deploy-cloudformation.sh
+  ```
+
+  Later runs keep this value without passing it again (see `areax-rag-infra/docs/cloudformation.md`).
+
 ## Known limits and risks
 
 - **The server does not exist yet.** The image is built with `NEXT_PUBLIC_USE_MOCK_API=false`, so the UI calls `/api/**` routes that are not implemented. A deployed build shows the login page, but sign-in fails until the route handlers exist. To deploy the mock UI for a demo, add `--build-arg NEXT_PUBLIC_USE_MOCK_API=true` to the build step; do not leave that on in production.

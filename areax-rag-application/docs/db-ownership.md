@@ -1,6 +1,6 @@
 # Database ownership
 
-> **Provisional.** Table names are not final until the Prisma schema exists. This file is the **single source of truth** for who writes what; the service folder links here instead of keeping a copy.
+> The tables below match `prisma/schema.prisma`. This file is the **single source of truth** for who writes what; the service folder links here instead of keeping a copy.
 
 ## Rules
 
@@ -11,21 +11,26 @@
 
 ## Entities and writers
 
-| Entity | Written by the application | Written by Python services |
+| Table | Written by the application | Written by Python services |
 |---|---|---|
-| User (username, password hash, active flag) | Yes (seed script, login metadata) | No |
-| Project | Yes | No |
-| Project member (role: owner / member) | Yes | No |
-| Document (name, type, size, source, storage key) | Yes: creates the row with status `PENDING` | Updates `status`, `failure_reason`, `chunk_count` |
-| Thread (owner user, project, title) | Yes | No |
-| Message (question) | Yes: saves the user's question | No |
-| Message (answer) | No | Yes: saves the full answer when the stream ends (proposed) |
+| `users` (username, `username_normalized`, `password_hash`, `is_active`) | Yes (seed script) | No |
+| `projects` (name, description, shared `prompt`) | Yes | No |
+| `project_members` (`role`: `OWNER` or `MEMBER`) | Yes | No |
+| `documents` | Yes: creates the row (`PENDING_UPLOAD`, or `PROCESSING` for YouTube), moves it to `PROCESSING` when the upload is confirmed | Updates `status`, `failure_code`, `chunk_count` |
+| `threads` (owner user, project, title) | Yes | No |
+| `messages` (question) | Yes: saves the question | No |
+| `messages` (answer) | Yes: creates the empty answer (`STREAMING`) and marks it `FAILED` on an error message | Yes: writes the full `content` and sets `status` to `DONE` when the stream ends |
 
 ## Document status
 
-`PENDING -> PROCESSING -> READY | FAILED`. Final names follow the schema. A failed document stores a `failure_reason` code (see [`error-codes.md`](error-codes.md)).
+`PENDING_UPLOAD -> PROCESSING -> READY | FAILED`. `PENDING_UPLOAD` means a presigned URL was issued but the upload is not confirmed; the API shows it as `PROCESSING`. A failed document stores a `failure_code` (see [`error-codes.md`](error-codes.md)).
+
+## Message status
+
+`STREAMING -> DONE | FAILED`. The service writes the answer text and `DONE`; the application creates the row as `STREAMING` and sets `FAILED` with a `failure_code` when it receives an error message.
 
 ## Notes
 
 - Vectors live in S3 Vectors, not in Postgres. Deleting a document or project must remove its file and its vectors as well as its rows.
-- Message ordering and idempotency: answers are keyed by `message_id` so a redelivered Kafka message does not create duplicates.
+- Answers are keyed by the message id the application created, so a redelivered Kafka message updates the same row instead of creating a duplicate.
+- A thread belongs to its owner and survives the owner leaving or being removed from the project; it is hidden until they are added back.

@@ -1,6 +1,6 @@
 # Error codes
 
-> **Provisional.** This is the starting list. The code constants live in `src/server/errors/codes.ts` once the project exists; keep this file in sync in the same change.
+> **Provisional.** This is the starting list. The code constants live in `src/server/errors/codes.ts`; keep this file in sync in the same change.
 
 Every API response carries `status` (HTTP status) and `code`. The UI translates `code` using the locale key `error.<CODE>`. The `message` field is for debugging and is never shown to users.
 
@@ -30,8 +30,10 @@ Every API response carries `status` (HTTP status) and `code`. The UI translates 
 | `FILE_TOO_LARGE` | 413 | A single file exceeds the per-file limit |
 | `UNSUPPORTED_FILE_TYPE` | 422 | File type is not supported |
 | `INVALID_YOUTUBE_URL` | 422 | The link is not a YouTube video URL |
+| `UPLOAD_NOT_FOUND` | 422 | No file was found in storage, or its size differs from the declared one; the pending document is dropped |
 | `NOT_FOUND` | 404 | No such route (generic) |
 | `RATE_LIMITED` | 429 | Too many requests (for example login attempts) |
+| `UPSTREAM_ERROR` | 502 | Kafka or storage did not answer in time or refused the call |
 | `INTERNAL_ERROR` | 500 | Unexpected error; details are only in the server log |
 
 ## Client-only codes

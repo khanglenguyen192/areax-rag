@@ -1,14 +1,15 @@
 # Kafka message contract
 
-> **Provisional.** The Kafka design (topic names, token batching, retries) is still open. This page records the shape agreed so far so the application (TypeScript) and the services (Python) stay in sync. Change it in both places in the same change.
+> **Provisional.** The application side is implemented (zod schemas in `areax-rag-application/src/server/model/messages/messages.ts`); the Python side is not written yet. The Kafka design (topic names, token batching, retries) is still open. This page records the shape agreed so far so the application (TypeScript) and the services (Python) stay in sync. Change it in both places in the same change.
 
 ## Rules
 
-- Every message has an envelope with `schemaVersion`, `requestId`, `projectId`, `occurredAt`.
+- Every message has an envelope with `schemaVersion`, `type`, `requestId`, `projectId`, `occurredAt`.
 - The Python models live in `src/areax_service/contracts/`. JSON field names are **camelCase** on the wire; the Python fields are `snake_case` with a camelCase alias generator.
 - A change that only adds optional fields keeps the same `schemaVersion`; a breaking change bumps it, and consumers accept both during the transition.
 - Messages are validated on receipt (pydantic in Python, zod in the application). Invalid messages go to a dead-letter topic and are never retried.
-- Chat messages use `threadId` as the partition key so tokens stay in order.
+- Chat messages use `threadId` as the partition key so tokens stay in order; document events use `documentId` (project events use `projectId`).
+- Topics: `areax.document.events`, `areax.chat.requests`, `areax.chat.tokens`, `areax.dlq`.
 - Consumers commit offsets **after** successful handling. Handlers are idempotent (keyed by `documentId` / `messageId`).
 - `requestId` is copied into every message produced while handling a request, so one question can be traced across the system.
 
@@ -17,6 +18,7 @@
 | Field | Type | Notes |
 |---|---|---|
 | `schemaVersion` | integer | Starts at 1 |
+| `type` | string | The message name from the tables below, for example `DocumentUploaded` |
 | `requestId` | string | Same value as the API `requestId` |
 | `projectId` | string | |
 | `occurredAt` | string | ISO-8601 UTC |
