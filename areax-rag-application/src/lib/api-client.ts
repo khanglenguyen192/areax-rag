@@ -33,6 +33,17 @@ async function send(method: Method, path: string, options: RequestOptions): Prom
     throw new ApiError(0, "NETWORK_ERROR", "Network request failed");
   }
 
+  // 204 has no body: the real server sends it after a delete.
+  if (response.status === 204) {
+    return {
+      status: 204,
+      code: "OK",
+      message: "OK",
+      requestId: response.headers.get("X-Request-Id") ?? "",
+      timestamp: new Date().toISOString(),
+    };
+  }
+
   try {
     return (await response.json()) as ApiResponse;
   } catch {

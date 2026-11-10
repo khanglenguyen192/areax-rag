@@ -1,0 +1,28 @@
+/**
+ * Every error code the API can return, with its HTTP status.
+ * Keep in sync with docs/error-codes.md and the `error.<CODE>` keys in src/locales/en.json.
+ */
+export const ERROR_STATUS = {
+  VALIDATION_FAILED: 400,
+  UNAUTHENTICATED: 401,
+  INVALID_CREDENTIALS: 401,
+  FORBIDDEN: 403,
+  NOT_A_MEMBER: 403,
+  PROJECT_NOT_FOUND: 404,
+  DOCUMENT_NOT_FOUND: 404,
+  THREAD_NOT_FOUND: 404,
+  USERNAME_NOT_FOUND: 404,
+  NOT_FOUND: 404,
+  ALREADY_A_MEMBER: 409,
+  FILE_TOO_LARGE: 413,
+  OWNER_CANNOT_LEAVE: 422,
+  PROJECT_SIZE_LIMIT_EXCEEDED: 422,
+  UNSUPPORTED_FILE_TYPE: 422,
+  INVALID_YOUTUBE_URL: 422,
+  UPLOAD_NOT_FOUND: 422,
+  RATE_LIMITED: 429,
+  UPSTREAM_ERROR: 502,
+  INTERNAL_ERROR: 500,
+} as const;
+
+export type ErrorCode = keyof typeof ERROR_STATUS;
