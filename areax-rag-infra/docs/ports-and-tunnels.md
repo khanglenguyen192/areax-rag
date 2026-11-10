@@ -7,6 +7,7 @@ All services on the VPS publish ports **only on `127.0.0.1`**. You reach them fr
 | Postgres | 5432 | 5432 (use 5433 if you already run Postgres locally) |
 | Kafka (EXTERNAL listener) | 9094 | 9094 |
 | Floci | 4566 | 4566 |
+| Floci UI (container `floci-aws-ui`) | 4500 | 4500 |
 
 Why `127.0.0.1`: Docker's published ports bypass `ufw`. A port published as `5432:5432` is open to the internet even if the firewall says otherwise. Always write `127.0.0.1:5432:5432`. The compose files in [`../compose/`](../compose/) already do this.
 
@@ -18,7 +19,7 @@ Use the helper script with a host alias from your own `~/.ssh/config`:
 SSH_ALIAS=<your-ssh-alias> ./scripts/tunnel.sh open     # also: close, status
 ```
 
-It forwards the three ports above, skips any local port that is already in use, and uses a control socket so `close` and `status` work. Override ports with `LOCAL_POSTGRES_PORT`, `LOCAL_KAFKA_PORT`, `LOCAL_FLOCI_PORT`.
+It forwards the four ports above, skips any local port that is already in use, and uses a control socket so `close` and `status` work. Override ports with `LOCAL_POSTGRES_PORT`, `LOCAL_KAFKA_PORT`, `LOCAL_FLOCI_PORT`, `LOCAL_FLOCI_UI_PORT`.
 
 You may instead keep `LocalForward` lines in your SSH config. Do not do both for the same port.
 
@@ -55,6 +56,7 @@ Check from your machine after opening the tunnel: connect a Kafka client to `loc
 ## Floci
 
 - Endpoint through the tunnel: `http://localhost:4566`.
+- UI through the tunnel: `http://localhost:4500/` (separate container `floci-aws-ui` on the VPS, not yet in `floci.compose.yml`).
 - [`../compose/floci.compose.yml`](../compose/floci.compose.yml) sets `FLOCI_STORAGE_MODE` explicitly (the default image uses `memory` and loses everything on restart). `hybrid` keeps data across restarts but can lose the latest writes after a sudden stop.
 - Data is in a named volume.
 - Unsupported CloudFormation resource types fail loudly (`FLOCI_SERVICES_CLOUDFORMATION_ALLOW_STUB_UNSUPPORTED_RESOURCE_TYPES=false`).

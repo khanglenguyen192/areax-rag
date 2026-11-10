@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 #
 # tunnel.sh - open, close or check the SSH tunnel from YOUR machine to the VPS.
-# Forwards Postgres, Kafka (EXTERNAL listener) and Floci to localhost.
+# Forwards Postgres, Kafka (EXTERNAL listener), Floci and the Floci UI to localhost.
 # Written for bash 3.2+ (macOS default).
 #
 # Usage: SSH_ALIAS=<your-ssh-alias> tunnel.sh <open|close|status>
@@ -13,10 +13,12 @@ SSH_ALIAS="${SSH_ALIAS:-}"
 LOCAL_POSTGRES_PORT="${LOCAL_POSTGRES_PORT:-5432}"
 LOCAL_KAFKA_PORT="${LOCAL_KAFKA_PORT:-9094}"
 LOCAL_FLOCI_PORT="${LOCAL_FLOCI_PORT:-4566}"
+LOCAL_FLOCI_UI_PORT="${LOCAL_FLOCI_UI_PORT:-4500}"
 # Ports on the VPS (all bound to 127.0.0.1 there)
 REMOTE_POSTGRES_PORT="${REMOTE_POSTGRES_PORT:-5432}"
 REMOTE_KAFKA_PORT="${REMOTE_KAFKA_PORT:-9094}"
 REMOTE_FLOCI_PORT="${REMOTE_FLOCI_PORT:-4566}"
+REMOTE_FLOCI_UI_PORT="${REMOTE_FLOCI_UI_PORT:-4500}"
 
 log() { printf '[tunnel] %s\n' "$*" >&2; }
 die() { printf '[tunnel] ERROR: %s\n' "$*" >&2; exit 1; }
@@ -34,7 +36,8 @@ Environment:
   LOCAL_POSTGRES_PORT   Local port for Postgres (default 5432; use 5433 if taken)
   LOCAL_KAFKA_PORT      Local port for Kafka    (default 9094)
   LOCAL_FLOCI_PORT      Local port for Floci    (default 4566)
-  REMOTE_*_PORT         Ports on the VPS (defaults 5432, 9094, 4566)
+  LOCAL_FLOCI_UI_PORT   Local port for Floci UI (default 4500)
+  REMOTE_*_PORT         Ports on the VPS (defaults 5432, 9094, 4566, 4500)
   TUNNEL_SOCKET         Control socket path (default /tmp/areax-rag-tunnel-<alias>.sock)
 
 Kafka note: clients must use localhost:9094 (the advertised address). If you change
@@ -61,7 +64,8 @@ open_tunnel() {
   local name local_port remote_port
   for entry in "Postgres:${LOCAL_POSTGRES_PORT}:${REMOTE_POSTGRES_PORT}" \
     "Kafka:${LOCAL_KAFKA_PORT}:${REMOTE_KAFKA_PORT}" \
-    "Floci:${LOCAL_FLOCI_PORT}:${REMOTE_FLOCI_PORT}"; do
+    "Floci:${LOCAL_FLOCI_PORT}:${REMOTE_FLOCI_PORT}" \
+    "Floci UI:${LOCAL_FLOCI_UI_PORT}:${REMOTE_FLOCI_UI_PORT}"; do
     IFS=':' read -r name local_port remote_port <<<"$entry"
     if port_listening "$local_port"; then
       log "Local port $local_port is already in use; skipping $name forward."
@@ -97,7 +101,7 @@ show_status() {
     log "Tunnel: DOWN"
   fi
   local name port
-  for entry in "Postgres:${LOCAL_POSTGRES_PORT}" "Kafka:${LOCAL_KAFKA_PORT}" "Floci:${LOCAL_FLOCI_PORT}"; do
+  for entry in "Postgres:${LOCAL_POSTGRES_PORT}" "Kafka:${LOCAL_KAFKA_PORT}" "Floci:${LOCAL_FLOCI_PORT}" "Floci UI:${LOCAL_FLOCI_UI_PORT}"; do
     IFS=':' read -r name port <<<"$entry"
     if port_listening "$port"; then
       log "  $name: localhost:$port is listening"
