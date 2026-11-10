@@ -20,9 +20,9 @@
 | # | Item | Status | Result |
 |---|---|---|---|
 | 1 | Kafka with two listeners through the SSH tunnel | Not tested | |
-| 2 | `deploy-cloudformation.sh` against a real Floci (create, update, no change) | Not tested | |
-| 3 | S3 Vectors property names and metadata configuration accepted by Floci | Not tested | |
-| 4 | CORS and public access block properties on the S3 bucket accepted by Floci | Not tested | |
+| 2 | `deploy-cloudformation.sh` against a real Floci (create, update, no change) | Partly tested | Create works and the stack reached `CREATE_COMPLETE` after the template fix (2026-11-10). Update and no-change runs not tested yet |
+| 3 | S3 Vectors property names and metadata configuration accepted by Floci | Tested | Vector bucket and index created. `get-index` shows dimension 1536, cosine, and `nonFilterableMetadataKeys: [text]`. A `CommaDelimitedList` parameter failed (list passed as a string), so the key is written inline |
+| 4 | CORS and public access block properties on the S3 bucket accepted by Floci | Tested | The bucket was created with the public access block and a CORS rule that includes `AllowedOrigins: [http://localhost:3000]`. A list parameter silently dropped the origins, so the origin is a single string parameter. Browser upload (item 8) still not tested |
 | 5 | `aws cloudformation deploy` (`USE_DEPLOY=1`) on Floci | Not tested | |
 | 6 | Floci RAM use in `hybrid` mode; VPS free disk and RAM (`df -h /`, `free -m`, `docker stats`) | Not measured | |
 | 7 | Whether Floci needs the `/var/run/docker.sock` mount | Not checked | |

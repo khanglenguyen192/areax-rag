@@ -8,6 +8,10 @@ Description: >-
 # - Dimension 1536 matches the embedding model text-embedding-3-small. If the model in the
 #   environment changes, change this value together with it.
 # - Data resources use DeletionPolicy: Retain so deleting the stack never erases user data.
+# - No CommaDelimitedList parameters. Floci passes them on as a plain string instead of a list,
+#   which made the index fail ("NonFilterableMetadataKeys must be a list of strings") and made
+#   the bucket's CORS rule lose its AllowedOrigins without any error. Lists are written inline,
+#   so allowing a second browser origin means adding one more `- !Ref` entry (and a parameter).
 # - Floci skips unsupported resource types silently (WARN only). Run Floci with
 #   FLOCI_SERVICES_CLOUDFORMATION_ALLOW_STUB_UNSUPPORTED_RESOURCE_TYPES=false.
 
@@ -45,17 +49,12 @@ Parameters:
       - euclidean
     Description: Distance metric used by the index.
 
-  NonFilterableMetadataKeys:
-    Type: CommaDelimitedList
-    Default: text
-    Description: >-
-      Metadata keys that can be stored but not filtered on. "text" holds the chunk text so a
-      query can return passages without a second lookup (proposed design, see docs).
-
-  CorsAllowedOrigins:
-    Type: CommaDelimitedList
+  CorsAllowedOrigin:
+    Type: String
     Default: "http://localhost:3000"
-    Description: Browser origins allowed to upload to and read from the documents bucket (presigned URLs).
+    Description: >-
+      Browser origin allowed to upload to and read from the documents bucket (presigned URLs),
+      for example http://<vps-address>:3000 for the deployed application. One origin only; see the notes.
 
 Resources:
   DocumentsBucket:
@@ -71,7 +70,8 @@ Resources:
         RestrictPublicBuckets: true
       CorsConfiguration:
         CorsRules:
-          - AllowedOrigins: !Ref CorsAllowedOrigins
+          - AllowedOrigins:
+              - !Ref CorsAllowedOrigin
             AllowedMethods:
               - GET
               - PUT
@@ -101,7 +101,10 @@ Resources:
       Dimension: !Ref VectorDimension
       DistanceMetric: !Ref DistanceMetric
       MetadataConfiguration:
-        NonFilterableMetadataKeys: !Ref NonFilterableMetadataKeys
+        # "text" holds the chunk text so a query can return passages without a second lookup
+        # (proposed design, see docs). Written inline, not as a parameter: see the notes.
+        NonFilterableMetadataKeys:
+          - text
 
 Outputs:
   DocumentsBucketName:

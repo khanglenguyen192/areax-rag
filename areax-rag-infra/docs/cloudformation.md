@@ -21,8 +21,9 @@ All three have `DeletionPolicy: Retain` and `UpdateReplacePolicy: Retain`, so de
 | `VectorIndexName` | `areax-rag-chunks` | |
 | `VectorDimension` | `1536` | Matches `text-embedding-3-small`. Cannot be changed on an existing index |
 | `DistanceMetric` | `cosine` | `cosine` or `euclidean`. Cannot be changed on an existing index |
-| `NonFilterableMetadataKeys` | `text` | Keys stored but not filterable. `text` holds the chunk text (proposed design) |
-| `CorsAllowedOrigins` | `http://localhost:3000` | Comma-separated list of browser origins |
+| `CorsAllowedOrigin` | `http://localhost:3000` | One browser origin allowed to upload to the documents bucket. Use `http://<vps-address>:3000` for the deployed application |
+
+The index's non-filterable metadata key (`text`) is written inline in the template, not as a parameter. Floci passes a comma-separated list parameter on as a plain string, which broke the index and silently dropped the CORS origins (see the notes at the top of `cloudformation/storage.yml`).
 
 ## Outputs
 
@@ -31,7 +32,7 @@ All three have `DeletionPolicy: Retain` and `UpdateReplacePolicy: Retain`, so de
 ## Passing parameters
 
 ```bash
-PARAMETERS="VectorDimension=1536 CorsAllowedOrigins=http://localhost:3000,http://localhost:3001" \
+PARAMETERS="VectorDimension=1536 CorsAllowedOrigin=http://localhost:3000" \
   ./scripts/deploy-cloudformation.sh
 ```
 
