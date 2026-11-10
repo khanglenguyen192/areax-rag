@@ -28,8 +28,6 @@ jobs:
     # A manual run could be started from any branch; only deployment/prod may deploy.
     if: github.ref == 'refs/heads/deployment/prod'
     runs-on: ubuntu-latest
-    outputs:
-      image: ${{ steps.ref.outputs.image }}
     steps:
       - uses: actions/checkout@v4
 
@@ -106,7 +104,9 @@ jobs:
           HOST: ${{ secrets.VPS_HOST }}
           USER_NAME: ${{ secrets.VPS_USER }}
           PORT: ${{ secrets.VPS_PORT || '22' }}
-          IMAGE_REF: ${{ needs.build.outputs.image }}
         run: |
+          # Rebuilt here instead of read from a job output: GitHub drops job outputs that contain a
+          # secret value, and the image name contains DOCKERHUB_USERNAME.
+          IMAGE_REF="${IMAGE}:application-${GITHUB_SHA::7}"
           ssh -i ~/.ssh/id_deploy -p "$PORT" "$USER_NAME@$HOST" \
             "bash ~/areax-rag/application/deploy.sh '$IMAGE_REF'"
